@@ -8,11 +8,11 @@
 #include <iostream>
 #include <algorithm>
 
-#include "Quad.h"
-#include "Shader.h"
-#include "Table.h"
-#include "CardManager.h"
-#include "CardAnimator.h"
+#include "Graphics/Quad.h"
+#include "Graphics/Shader.h"
+#include "Table/Table.h"
+#include "Cards/CardManager.h"
+#include "Cards/CardAnimator.h"
 
 #ifndef ASSET_DIR
 #define ASSET_DIR "./"

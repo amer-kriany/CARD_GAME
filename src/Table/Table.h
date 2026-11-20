@@ -6,9 +6,9 @@
 
 #include <glm/glm.hpp>
 
-#include "Quad.h"
-#include "Shader.h"
-#include "Texture.h"
+#include "Graphics/Quad.h"
+#include "Graphics/Shader.h"
+#include "Graphics/Texture.h"
 
 struct Zone {
     std::string name;

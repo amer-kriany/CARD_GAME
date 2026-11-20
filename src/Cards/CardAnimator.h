@@ -6,8 +6,8 @@
 #include <glm/glm.hpp>
 
 #include "CardManager.h"
-#include "Quad.h"
-#include "Shader.h"
+#include "Graphics/Quad.h"
+#include "Graphics/Shader.h"
 
 class CardAnimator {
 public:
