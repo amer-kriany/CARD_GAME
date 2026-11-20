@@ -8,7 +8,10 @@
             "program": "${workspaceFolder}/build/cardGame",
             "cwd": "${workspaceFolder}",
             "MIMode": "gdb",
-            "preLaunchTask": "cmake build"
+            "preLaunchTask": "cmake build",
+            "windows": {
+                "program": "${workspaceFolder}/build/cardGame.exe"
+            }
         }
     ]
 }
