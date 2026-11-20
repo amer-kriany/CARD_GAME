@@ -6,10 +6,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
+#include <algorithm>
 
 #include "Quad.h"
 #include "Shader.h"
 #include "Table.h"
+#include "CardManager.h"
+#include "CardAnimator.h"
 
 #ifndef ASSET_DIR
 #define ASSET_DIR "./"
@@ -74,6 +77,9 @@ int main()
             ASSET_DIR "textures/wood.png"
         );
 
+        CardManager cardManager;
+        CardAnimator cardAnimator;
+
         glm::mat4 projection = glm::ortho(
             -1.0f,
             1.0f,
@@ -83,12 +89,50 @@ int main()
             1.0f
         );
 
+        bool gWasPressed = false;
+
+        float lastFrame = 0.0f;
+
         while (!glfwWindowShouldClose(window))
         {
+            float currentFrame = static_cast<float>(glfwGetTime());
+
+            float deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;
+
+            // Avoid huge animation jumps if the window freezes briefly.
+            deltaTime = std::min(deltaTime, 0.05f);
+
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             {
                 glfwSetWindowShouldClose(window, true);
             }
+
+            // Detect a new G key press.
+            bool gIsPressed =
+                glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS;
+
+            if (gIsPressed && !gWasPressed)
+            {
+                // Start an animation only if a card was successfully moved.
+                if (cardManager.playRandomCard())
+                {
+                    const Card& selectedCard =
+                        cardManager.playedCards().back();
+
+                    int targetIndex =
+                        cardManager.playedCount() - 1;
+
+                    cardAnimator.start(
+                        selectedCard.id(),
+                        targetIndex
+                    );
+                }
+            }
+
+            gWasPressed = gIsPressed;
+
+            cardAnimator.update(deltaTime);
 
             glClearColor(
                 0.025f,
@@ -102,7 +146,15 @@ int main()
             shader.use();
             shader.setMat4("projection", projection);
 
+            // Draw the table first.
             table.draw(shader, quad);
+
+            // Draw the deck, played cards, and active animation.
+            cardAnimator.draw(
+                shader,
+                quad,
+                cardManager
+            );
 
             glfwSwapBuffers(window);
             glfwPollEvents();
