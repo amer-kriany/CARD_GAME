@@ -1,4 +1,3 @@
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -14,8 +13,11 @@
 #include "Graphics/Quad.h"
 #include "Graphics/Shader.h"
 #include "Table/Table.h"
+#include "Table/TableLegs.h"
 #include "Cards/CardManager.h"
 #include "Cards/CardAnimator.h"
+#include "Camera/DualCamera.h"
+#include "WorldConfig.h"
 
 #ifndef ASSET_DIR
 #define ASSET_DIR "./"
@@ -68,6 +70,9 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // We are in real 3D now, so we need a depth buffer.
+    glEnable(GL_DEPTH_TEST);
+
     {
         Shader shader(
             ASSET_DIR "shaders/basic.vert",
@@ -76,27 +81,29 @@ int main()
 
         Quad quad;
 
-Table table(
-    ASSET_DIR "textures/wood.png"
-);
-
-Texture cardTexture(
-    ASSET_DIR "textures/wood.png"
-);
-
-Cards cards;
-
-CardManager cardManager;
-CardAnimator cardAnimator;
-
-        glm::mat4 projection = glm::ortho(
-            -1.0f,
-            1.0f,
-            -0.75f,
-            0.75f,
-            -1.0f,
-            1.0f
+        Table table(
+            ASSET_DIR "textures/wood.png"
         );
+
+        Texture cardTexture(
+            ASSET_DIR "textures/wood.png"
+        );
+
+        // Wood for the legs. Kept separate from cardTexture because the
+        // cards will get their own artwork later.
+        Texture woodTexture(
+            ASSET_DIR "textures/wood.png"
+        );
+
+        TableLegs tableLegs;
+
+        Cards cards;
+
+        CardManager cardManager;
+        CardAnimator cardAnimator;
+
+        // Fadi's camera: keys 1 and 2 switch between the two fixed views.
+        DualCamera camera;
 
         bool gWasPressed = false;
 
@@ -116,6 +123,9 @@ CardAnimator cardAnimator;
             {
                 glfwSetWindowShouldClose(window, true);
             }
+
+            // Keys 1 / 2 -> camera mode.
+            camera.processKeyboard(window);
 
             // Detect a new G key press.
             bool gIsPressed =
@@ -141,7 +151,7 @@ CardAnimator cardAnimator;
 
             gWasPressed = gIsPressed;
 
-            cardAnimator.update(deltaTime);
+            cardAnimator.update(deltaTime, camera.currentMode);
 
             glClearColor(
                 0.025f,
@@ -150,21 +160,61 @@ CardAnimator cardAnimator;
                 1.0f
             );
 
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            // Perspective projection that follows the window shape.
+            int framebufferWidth = 0;
+            int framebufferHeight = 0;
+            glfwGetFramebufferSize(
+                window,
+                &framebufferWidth,
+                &framebufferHeight
+            );
+
+            float aspect =
+                static_cast<float>(framebufferWidth) /
+                static_cast<float>(std::max(framebufferHeight, 1));
+
+            glm::mat4 projection = glm::perspective(
+                glm::radians(45.0f),
+                aspect,
+                0.1f,
+                100.0f
+            );
 
             shader.use();
             shader.setMat4("projection", projection);
+            shader.setMat4("view", camera.getViewMatrix());
 
-            // Draw the table first.
+            // ---- Legs ----
+            // Drawn BEFORE the table, with depth on. Legs are already in
+            // world space, so "world" is identity.
+            shader.setMat4("world", glm::mat4(1.0f));
+            tableLegs.draw(shader, woodTexture);
+
+            // ---- Table ----
+            // Table.cpp still draws in its old XY layout and sets "model"
+            // itself. The "world" matrix lays that whole thing flat on the
+            // XZ floor plane (and scales it up) without touching Table.cpp.
+            // The table is painted in layers, so it skips the depth test
+            // and is simply drawn first.
+            shader.setMat4("world", world::tableToWorld());
+
+            glDisable(GL_DEPTH_TEST);
             table.draw(shader, quad);
+            glEnable(GL_DEPTH_TEST);
 
-          // Draw the real cards and animate them.
-cardAnimator.draw(
-    shader,
-    cardTexture,
-    cards,
-    cardManager
-);
+            // ---- Cards ----
+            // Cards build their full world transform themselves,
+            // so "world" goes back to identity.
+            shader.setMat4("world", glm::mat4(1.0f));
+
+            cardAnimator.draw(
+                shader,
+                cardTexture,
+                cards,
+                cardManager
+            );
 
             glfwSwapBuffers(window);
             glfwPollEvents();

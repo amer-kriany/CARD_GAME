@@ -5,6 +5,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "WorldConfig.h"
+
 CardAnimator::CardAnimator()
 {
 }
@@ -12,7 +14,6 @@ CardAnimator::CardAnimator()
 glm::vec2 CardAnimator::deckPosition(int cardId) const
 {
     // Each card owns a fixed slot in the deck zone, based on its ID (1-5).
-    // Fixed slots mean cards don't shift when another card is played.
     float x = ((cardId - 1) - 2) * SLOT_SPACING;
 
     return glm::vec2(x, -0.48f);
@@ -24,6 +25,12 @@ glm::vec2 CardAnimator::gamePosition(int index) const
     float x = (index - 2) * SLOT_SPACING;
 
     return glm::vec2(x, 0.0f);
+}
+
+float CardAnimator::halfDepth(int cardId) const
+{
+    // Wassim's cards: card 1 reaches z = 0.10, card 5 reaches z = 0.14.
+    return 0.10f + 0.01f * static_cast<float>(cardId - 1);
 }
 
 void CardAnimator::start(int cardId, int targetIndex)
@@ -38,13 +45,29 @@ void CardAnimator::start(int cardId, int targetIndex)
 
     animation.elapsedTime = 0.0f;
     animation.duration = ANIMATION_DURATION;
-    animation.rotation = 0.0f;
+
+    animation.spin = 0.0f;
+    animation.height = 0.0f;
 
     animations_.push_back(animation);
 }
 
-void CardAnimator::update(float deltaTime)
+void CardAnimator::update(float deltaTime, int cameraMode)
 {
+    // ---- Flat <-> standing, driven by the camera mode ----
+    float targetAngle = (cameraMode == 2) ? 90.0f : 0.0f;
+    float step = STAND_SPEED * deltaTime;
+
+    if (standAngle_ < targetAngle)
+    {
+        standAngle_ = std::min(standAngle_ + step, targetAngle);
+    }
+    else if (standAngle_ > targetAngle)
+    {
+        standAngle_ = std::max(standAngle_ - step, targetAngle);
+    }
+
+    // ---- Deck -> game field movement ----
     for (Animation& animation : animations_)
     {
         animation.elapsedTime += deltaTime;
@@ -55,17 +78,17 @@ void CardAnimator::update(float deltaTime)
         // Smoothstep easing.
         float smoothT = t * t * (3.0f - 2.0f * t);
 
-        glm::vec2 position = glm::mix(
+        animation.currentPosition = glm::mix(
             animation.startPosition,
             animation.targetPosition,
             smoothT
         );
 
-        // Small upward arc.
-        position.y += 0.10f * std::sin(t * 3.14159265f);
+        // The arc is now real height above the table (it used to be
+        // a 2D "up the screen" shift).
+        animation.height = ARC_HEIGHT * std::sin(t * 3.14159265f);
 
-        animation.currentPosition = position;
-        animation.rotation = 0.22f * std::sin(t * 3.14159265f);
+        animation.spin = 0.22f * std::sin(t * 3.14159265f);
     }
 
     // Remove finished animations.
@@ -85,36 +108,53 @@ void CardAnimator::update(float deltaTime)
 void CardAnimator::drawCard(
     int cardId,
     const glm::vec2& position,
-    float rotation,
+    float height,
+    float spin,
     const Shader& shader,
     const Texture& texture,
     const Cards& cards
 ) const
 {
+    const float tableScale = world::TABLE_SCALE;
+    const float cardScale = tableScale * CARD_SCALE;
+
+    const float standRad = glm::radians(standAngle_);
+
+    // When the card stands up it rotates around its CENTER, so half of it
+    // would sink below the table. Lift it by how far it reaches downward.
+    float standLift =
+        halfDepth(cardId) * cardScale * std::sin(standRad);
+
     glm::mat4 model(1.0f);
 
-    // Position the card in our current 2D table view.
+    // Table space (x, y) -> world (x, up, z). The table's "toward the enemy"
+    // axis y becomes -Z, so the deck (y = -0.48) is nearest the player.
     model = glm::translate(
         model,
-        glm::vec3(position.x, position.y, 0.02f)
+        glm::vec3(
+            position.x * tableScale,
+            TABLE_CLEARANCE + height + standLift,
+            -position.y * tableScale
+        )
     );
 
-    // Convert Wassim's XZ card plane into our current XY view.
+    // Wassim's cards already lie on the XZ plane, so with this camera setup
+    // they lie flat naturally. The old -90 degree hack is gone.
+    // 0 degrees = flat, 90 degrees = standing, facing the player (+Z).
     model = glm::rotate(
         model,
-        glm::radians(-90.0f),
+        standRad,
         glm::vec3(1.0f, 0.0f, 0.0f)
     );
 
-    // Spin around the card's local vertical axis.
+    // Spin around the card's own normal (works flat or standing).
     model = glm::rotate(
         model,
-        rotation,
+        spin,
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    // Make the cards a bit bigger so they're readable.
-    model = glm::scale(model, glm::vec3(CARD_SCALE));
+    model = glm::scale(model, glm::vec3(cardScale));
 
     cards.drawCard(cardId, shader, texture, model);
 }
@@ -134,6 +174,7 @@ void CardAnimator::draw(
         drawCard(
             card.id(),
             deckPosition(card.id()),
+            0.0f,
             0.0f,
             shader,
             texture,
@@ -157,7 +198,8 @@ void CardAnimator::draw(
                 drawCard(
                     card.id(),
                     animation.currentPosition,
-                    animation.rotation,
+                    animation.height,
+                    animation.spin,
                     shader,
                     texture,
                     cards
@@ -173,6 +215,7 @@ void CardAnimator::draw(
             drawCard(
                 card.id(),
                 gamePosition(static_cast<int>(i)),
+                0.0f,
                 0.0f,
                 shader,
                 texture,
