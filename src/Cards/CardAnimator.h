@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <vector>
@@ -6,8 +5,9 @@
 #include <glm/glm.hpp>
 
 #include "CardManager.h"
-#include "Graphics/Quad.h"
+#include "Cards.h"
 #include "Graphics/Shader.h"
+#include "Graphics/Texture.h"
 
 class CardAnimator {
 public:
@@ -17,8 +17,9 @@ public:
     void update(float deltaTime);
 
     void draw(
-        Shader& shader,
-        Quad& quad,
+        const Shader& shader,
+        const Texture& texture,
+        const Cards& cards,
         const CardManager& cardManager
     ) const;
 
@@ -37,19 +38,19 @@ private:
 
     std::vector<Animation> animations_;
 
-    static constexpr float CARD_WIDTH = 0.19f;
-    static constexpr float CARD_HEIGHT = 0.13f;
     static constexpr float ANIMATION_DURATION = 0.65f;
+    static constexpr float SLOT_SPACING = 0.29f;
+    static constexpr float CARD_SCALE = 1.3f;
 
     glm::vec2 deckPosition(int cardId) const;
     glm::vec2 gamePosition(int index) const;
 
-    bool isCardAnimating(int cardId) const;
-
     void drawCard(
-        Shader& shader,
-        Quad& quad,
+        int cardId,
         const glm::vec2& position,
-        float rotation
+        float rotation,
+        const Shader& shader,
+        const Texture& texture,
+        const Cards& cards
     ) const;
 };

@@ -2,6 +2,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "Cards/Cards.h"
+#include "Graphics/Texture.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -73,12 +76,18 @@ int main()
 
         Quad quad;
 
-        Table table(
-            ASSET_DIR "textures/wood.png"
-        );
+Table table(
+    ASSET_DIR "textures/wood.png"
+);
 
-        CardManager cardManager;
-        CardAnimator cardAnimator;
+Texture cardTexture(
+    ASSET_DIR "textures/wood.png"
+);
+
+Cards cards;
+
+CardManager cardManager;
+CardAnimator cardAnimator;
 
         glm::mat4 projection = glm::ortho(
             -1.0f,
@@ -149,12 +158,13 @@ int main()
             // Draw the table first.
             table.draw(shader, quad);
 
-            // Draw the deck, played cards, and active animation.
-            cardAnimator.draw(
-                shader,
-                quad,
-                cardManager
-            );
+          // Draw the real cards and animate them.
+cardAnimator.draw(
+    shader,
+    cardTexture,
+    cards,
+    cardManager
+);
 
             glfwSwapBuffers(window);
             glfwPollEvents();
