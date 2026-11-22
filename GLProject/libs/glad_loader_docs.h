@@ -1,6 +1,6 @@
 #ifndef GLAD_DOCS_H
 #define GLAD_DOCS_H
- #include <glad/glad.h>
+#include <glad/glad.h>
 #endif
 // glad_docs.h
 #if defined(__clang__) || defined(__INTELLISENSE__)

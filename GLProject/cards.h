@@ -72,16 +72,16 @@ public:
 
 // in main method : --------------------
 //     Cards cards;
-
-// unsigned int textureImage = loadTexture("./textures/Gambol.jpg"); // image for texture
+//
+// unsigned int textureImage = loadTexture("./textures/r.jpg"); // image for texture
 // cards.card1.setTexture(textureImage);
-// textureImage = loadTexture("./textures/Gambol.jpg"); // image for texture
+// textureImage = loadTexture("./textures/g1.jpg"); // image for texture
 // cards.card2.setTexture(textureImage);
-// textureImage = loadTexture("./textures/Gambol.jpg");
+// textureImage = loadTexture("./textures/d.jpg");
 // cards.card3.setTexture(textureImage);
-// textureImage = loadTexture("./textures/Gambol.jpg");
+// textureImage = loadTexture("./textures/a.jpg");
 // cards.card4.setTexture(textureImage);
-// textureImage = loadTexture("./textures/Gambol.jpg");
+// textureImage = loadTexture("./textures/m.jpg");
 // cards.card5.setTexture(textureImage);
 
 // _________________________________________________
