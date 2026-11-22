@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <vector>
@@ -26,7 +25,8 @@ public:
     void draw(
         const Shader& shader,
         const Texture& texture,
-        const glm::mat4& model
+        const glm::mat4& model,
+        int material = 1   // basic.frag "useTexture" mode (1 = texture x tint)
     ) const;
 
 private:

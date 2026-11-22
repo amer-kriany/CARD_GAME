@@ -14,6 +14,7 @@
 #include "Graphics/Shader.h"
 #include "Table/Table.h"
 #include "Table/TableLegs.h"
+#include "Room/Room.h"
 #include "Cards/CardManager.h"
 #include "Cards/CardAnimator.h"
 #include "Camera/DualCamera.h"
@@ -85,8 +86,10 @@ int main()
             ASSET_DIR "textures/wood.png"
         );
 
+        // Placeholder card art (Waseem's Gambol.jpg) for all five cards,
+        // until each card gets its own image.
         Texture cardTexture(
-            ASSET_DIR "textures/wood.png"
+            ASSET_DIR "textures/Gambol.jpg"
         );
 
         // Wood for the legs. Kept separate from cardTexture because the
@@ -96,6 +99,9 @@ int main()
         );
 
         TableLegs tableLegs;
+
+        // Waseem's room: floor, walls, ceiling and the torn poster.
+        Room room;
 
         Cards cards;
 
@@ -176,7 +182,7 @@ int main()
                 static_cast<float>(std::max(framebufferHeight, 1));
 
             glm::mat4 projection = glm::perspective(
-                glm::radians(45.0f),
+                glm::radians(55.0f),  // wider than before so the legs fit
                 aspect,
                 0.1f,
                 100.0f
@@ -185,6 +191,12 @@ int main()
             shader.use();
             shader.setMat4("projection", projection);
             shader.setMat4("view", camera.getViewMatrix());
+
+            // ---- Room ----
+            // Drawn first. Already in world space, so "world" is identity.
+            // The ceiling is skipped in camera 1, which sits above it.
+            shader.setMat4("world", glm::mat4(1.0f));
+            room.draw(shader, camera.currentMode == 2);
 
             // ---- Legs ----
             // Drawn BEFORE the table, with depth on. Legs are already in

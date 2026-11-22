@@ -1,4 +1,3 @@
-
 #version 330 core
 
 in vec2 TexCoord;
@@ -90,14 +89,16 @@ vec4 leatherMaterial()
 
 void main()
 {
-    float mask = shapeMask();
+    // Material 5 = plain texture for the room: no rounded-corner mask,
+    // otherwise a thin strip would be cut from every wall and the floor.
+    float mask = (useTexture == 5) ? 1.0 : shapeMask();
 
     if (mask < 0.01)
         discard;
 
     vec4 result;
 
-    if (useTexture == 1)
+    if (useTexture == 1 || useTexture == 5)
     {
         result = texture(ourTexture, TexCoord) * tint;
     }

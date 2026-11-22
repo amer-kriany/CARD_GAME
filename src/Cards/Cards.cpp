@@ -1,8 +1,11 @@
-
 #include "Cards.h"
 
 #include <stdexcept>
 
+// Texture coordinates: v is flipped (1 at the first corner, 0 at the last).
+// The first corners have z = -0.10, which is the FAR edge of the card
+// (up on screen in camera 1, the top when standing in camera 2), and the
+// image's top row is v = 1, so the image top must sit on that edge.
 Cards::Cards()
     : card1(
         {
@@ -12,10 +15,10 @@ Cards::Cards()
             {-0.07f, 0.002f,  0.10f}
         },
         {
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
+            {0.0f, 1.0f},
             {1.0f, 1.0f},
-            {0.0f, 1.0f}
+            {1.0f, 0.0f},
+            {0.0f, 0.0f}
         }
     ),
 
@@ -27,10 +30,10 @@ Cards::Cards()
             {-0.06f, 0.004f,  0.11f}
         },
         {
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
+            {0.0f, 1.0f},
             {1.0f, 1.0f},
-            {0.0f, 1.0f}
+            {1.0f, 0.0f},
+            {0.0f, 0.0f}
         }
     ),
 
@@ -42,10 +45,10 @@ Cards::Cards()
             {-0.05f, 0.006f,  0.12f}
         },
         {
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
+            {0.0f, 1.0f},
             {1.0f, 1.0f},
-            {0.0f, 1.0f}
+            {1.0f, 0.0f},
+            {0.0f, 0.0f}
         }
     ),
 
@@ -57,10 +60,10 @@ Cards::Cards()
             {-0.04f, 0.008f,  0.13f}
         },
         {
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
+            {0.0f, 1.0f},
             {1.0f, 1.0f},
-            {0.0f, 1.0f}
+            {1.0f, 0.0f},
+            {0.0f, 0.0f}
         }
     ),
 
@@ -72,10 +75,10 @@ Cards::Cards()
             {-0.03f, 0.010f,  0.14f}
         },
         {
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
+            {0.0f, 1.0f},
             {1.0f, 1.0f},
-            {0.0f, 1.0f}
+            {1.0f, 0.0f},
+            {0.0f, 0.0f}
         }
     )
 {

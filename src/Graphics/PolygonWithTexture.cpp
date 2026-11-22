@@ -1,4 +1,3 @@
-
 #include "PolygonWithTexture.h"
 
 #include <stdexcept>
@@ -79,11 +78,12 @@ PolygonWithTexture::~PolygonWithTexture()
 void PolygonWithTexture::draw(
     const Shader& shader,
     const Texture& texture,
-    const glm::mat4& model
+    const glm::mat4& model,
+    int material
 ) const
 {
     shader.setMat4("model", model);
-    shader.setInt("useTexture", 1);
+    shader.setInt("useTexture", material);
     shader.setInt("ourTexture", 0);
 
     shader.setVec4(

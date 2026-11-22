@@ -33,8 +33,10 @@ public:
             return lookAt(pos, target, up);
         } else {
             // الحالة 2: الكاميرا من منظور اللاعب (جهة اللاعب من الطاولة)
-            vec3 pos = vec3(0.0f, 2.2f, 4.2f);
-            vec3 target = vec3(0.0f, 0.4f, 0.0f);
+            // Lowered and pulled back a little (was 2.2/4.2 -> 0.4) so the
+            // table legs and the floor are in frame.
+            vec3 pos = vec3(0.0f, 1.9f, 4.6f);
+            vec3 target = vec3(0.0f, -0.2f, 0.0f);
             vec3 up = vec3(0.0f, 1.0f, 0.0f);
             return lookAt(pos, target, up);
         }
