@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -20,7 +21,7 @@ public:
 
     void draw(
         const Shader& shader,
-        const Texture& texture,
+        const std::vector<std::unique_ptr<Texture>>& cardTextures,  // one per card, index = id - 1
         const Cards& cards,
         const CardManager& cardManager
     ) const;
@@ -66,7 +67,7 @@ private:
         float height,
         float spin,
         const Shader& shader,
-        const Texture& texture,
+        const std::vector<std::unique_ptr<Texture>>& cardTextures,  // one per card, index = id - 1
         const Cards& cards
     ) const;
 };

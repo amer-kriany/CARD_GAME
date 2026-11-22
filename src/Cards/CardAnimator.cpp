@@ -111,7 +111,7 @@ void CardAnimator::drawCard(
     float height,
     float spin,
     const Shader& shader,
-    const Texture& texture,
+    const std::vector<std::unique_ptr<Texture>>& cardTextures,
     const Cards& cards
 ) const
 {
@@ -156,12 +156,21 @@ void CardAnimator::drawCard(
 
     model = glm::scale(model, glm::vec3(cardScale));
 
-    cards.drawCard(cardId, shader, texture, model);
+    // Each card has its own image: card id 1 -> textures[0], and so on.
+    // An id outside the list falls back to the first image.
+    std::size_t index = static_cast<std::size_t>(cardId - 1);
+
+    if (index >= cardTextures.size())
+    {
+        index = 0;
+    }
+
+    cards.drawCard(cardId, shader, *cardTextures[index], model);
 }
 
 void CardAnimator::draw(
     const Shader& shader,
-    const Texture& texture,
+    const std::vector<std::unique_ptr<Texture>>& cardTextures,
     const Cards& cards,
     const CardManager& cardManager
 ) const
@@ -177,7 +186,7 @@ void CardAnimator::draw(
             0.0f,
             0.0f,
             shader,
-            texture,
+            cardTextures,
             cards
         );
     }
@@ -201,7 +210,7 @@ void CardAnimator::draw(
                     animation.height,
                     animation.spin,
                     shader,
-                    texture,
+                    cardTextures,
                     cards
                 );
 
@@ -218,7 +227,7 @@ void CardAnimator::draw(
                 0.0f,
                 0.0f,
                 shader,
-                texture,
+                cardTextures,
                 cards
             );
         }

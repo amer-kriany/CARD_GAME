@@ -67,6 +67,10 @@ namespace
     // The poster image is portrait (640 x 1136) but Waseem's rectangle is
     // 3 wide x 2 tall, which stretches it sideways. Squeeze x so a 2-tall
     // poster is 640/1136 * 2 wide.
+    // Where the poster hangs along the back wall (0 = middle). It is moved
+    // to the left so the character, who stands in the middle, never hides it.
+    constexpr float POSTER_X = -2.6f;
+
     constexpr float POSTER_X_SCALE = (640.0f / 1136.0f * 2.0f) / 3.0f;
 
     std::vector<glm::vec3> posterPositions()
@@ -75,14 +79,18 @@ namespace
 
         // His floor was at y = -1, ours is at FLOOR_Y: keep the same
         // height above the floor.
-        const float lift = FLOOR_Y - (-1.0f);
+        // POSTER_DROP lowers it a bit more so the top is never cut off
+        // by the top of the screen in camera 2.
+        const float POSTER_DROP = 0.25f;
+        const float lift = FLOOR_Y - (-1.0f) - POSTER_DROP;
 
         for (const auto& p : POSTER_POINTS)
         {
             // z is mirrored (4.98 -> -4.98): his poster was on the wall
             // behind camera 2. This puts it on the BACK wall, which
             // camera 2 looks at.
-            positions.emplace_back(p[0] * POSTER_X_SCALE, p[1] + lift, -p[2]);
+            positions.emplace_back(
+                p[0] * POSTER_X_SCALE + POSTER_X, p[1] + lift, -p[2]);
         }
 
         return positions;

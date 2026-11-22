@@ -3,20 +3,24 @@
 
 #include "Cards/Cards.h"
 #include "Graphics/Texture.h"
-#include "Graphics/Model.h"
-#include "Room/Room.h"
-#include "Room/RoomDecor.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <cctype>
+#include <filesystem>
 #include <iostream>
+#include <memory>
+#include <vector>
 #include <algorithm>
 
 #include "Graphics/Quad.h"
 #include "Graphics/Shader.h"
 #include "Table/Table.h"
 #include "Table/TableLegs.h"
+#include "Room/Room.h"
+#include "Room/RoomDecor.h"
+#include "Graphics/Model.h"
 #include "Cards/CardManager.h"
 #include "Cards/CardAnimator.h"
 #include "Camera/DualCamera.h"
@@ -25,6 +29,61 @@
 #ifndef ASSET_DIR
 #define ASSET_DIR "./"
 #endif
+
+// Loads the card images from a folder: every .png / .jpg / .jpeg inside it,
+// sorted by file name. The first file is card 1, the second is card 2, and
+// so on. So just drop your five images into textures/cards/ (for example
+// 1.png, 2.png, ... or card1.png, card2.png, ...). The order is printed to
+// the terminal so you can check it.
+static std::vector<std::unique_ptr<Texture>> loadCardTextures(
+    const std::string& folder
+)
+{
+    namespace fs = std::filesystem;
+
+    std::vector<std::string> files;
+
+    if (fs::is_directory(folder))
+    {
+        for (const auto& entry : fs::directory_iterator(folder))
+        {
+            std::string extension = entry.path().extension().string();
+
+            std::transform(
+                extension.begin(), extension.end(), extension.begin(),
+                [](unsigned char c) { return std::tolower(c); }
+            );
+
+            if (extension == ".png" || extension == ".jpg"
+                || extension == ".jpeg")
+            {
+                files.push_back(entry.path().string());
+            }
+        }
+    }
+
+    std::sort(files.begin(), files.end());
+
+    if (files.empty())
+    {
+        std::cerr << "No card images found in " << folder
+                  << " - using wood.png for every card\n";
+        files.push_back(ASSET_DIR "textures/wood.png");
+    }
+
+    std::vector<std::unique_ptr<Texture>> textures;
+
+    for (int card = 1; card <= 5; ++card)
+    {
+        // If there are fewer than 5 images, start again from the first.
+        const std::string& path = files[(card - 1) % files.size()];
+
+        std::cout << "Card " << card << " -> " << path << "\n";
+        textures.push_back(std::make_unique<Texture>(path));
+    }
+
+    return textures;
+}
 
 static void onResize(GLFWwindow*, int width, int height)
 {
@@ -88,11 +147,11 @@ int main()
             ASSET_DIR "textures/wood.png"
         );
 
-        Texture cardTexture(
-            ASSET_DIR "textures/wood.png"
-        );
+        // One image per card, read from textures/cards/ (see loadCardTextures).
+        std::vector<std::unique_ptr<Texture>> cardTextures =
+            loadCardTextures(ASSET_DIR "textures/cards/");
 
-        // Wood for the legs. Kept separate from cardTexture because the
+        // Wood for the legs. Kept separate from the card textures because the
         // cards will get their own artwork later.
         Texture woodTexture(
             ASSET_DIR "textures/wood.png"
@@ -100,23 +159,39 @@ int main()
 
         TableLegs tableLegs;
 
+        // Waseem's room: floor, walls, ceiling and the torn poster.
+        Room room;
+
+        // Fadi's three decor pieces: pendulum clock, bookshelf, Saturn.
+        RoomDecor roomDecor;
+
+        // The third decor piece: a 3D character (Quaternius "Adventurer",
+        // CC0). He stands in the middle, behind the table, facing the player.
+        Model adventurer(
+            ASSET_DIR "models/Adventurer.glb",
+            "CharacterArmature|Idle_Neutral",
+            0.0f     // standing, arms down
+        );
+
+        glm::mat4 adventurerPlacement(1.0f);
+        adventurerPlacement = glm::translate(
+            adventurerPlacement,
+            glm::vec3(0.0f, world::FLOOR_Y, -1.95f)
+        );
+        adventurerPlacement = glm::rotate(
+            adventurerPlacement,
+            glm::radians(0.0f),     // 0 = facing the player (camera 2)
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+        adventurerPlacement = glm::scale(
+            adventurerPlacement,
+            glm::vec3(1.7f)   // size: bigger number = bigger character
+        );
+
         Cards cards;
 
         CardManager cardManager;
         CardAnimator cardAnimator;
-
-        // The room, decorations and character must be constructed while the
-        // OpenGL context is alive, just like the table and cards.
-        Room room;
-        RoomDecor roomDecor;
-
-        // The GLB is included in the project at models/Adventurer.glb.
-        // Freeze its Idle animation at 0.8 seconds for a stable standing pose.
-        Model adventurer(
-            ASSET_DIR "models/Adventurer.glb",
-            "CharacterArmature|Idle",
-            0.8f
-        );
 
         // Fadi's camera: keys 1 and 2 switch between the two fixed views.
         DualCamera camera;
@@ -192,7 +267,7 @@ int main()
                 static_cast<float>(std::max(framebufferHeight, 1));
 
             glm::mat4 projection = glm::perspective(
-                glm::radians(45.0f),
+                glm::radians(55.0f),  // wider than before so the legs fit
                 aspect,
                 0.1f,
                 100.0f
@@ -203,32 +278,12 @@ int main()
             shader.setMat4("view", camera.getViewMatrix());
 
             // ---- Room ----
-            // Room geometry is already authored in world coordinates.
+            // Drawn first. Already in world space, so "world" is identity.
+            // The ceiling is skipped in camera 1, which sits above it.
             shader.setMat4("world", glm::mat4(1.0f));
             room.draw(shader, camera.currentMode == 2);
-
-            // ---- Room Decorations ----
             roomDecor.draw(shader, currentFrame);
-
-            // ---- Adventurer character ----
-            // Put the character in the back-right corner, standing on the
-            // room floor and facing into the room.
-            glm::mat4 characterPlacement(1.0f);
-            characterPlacement = glm::translate(
-                characterPlacement,
-                glm::vec3(3.45f, world::FLOOR_Y, -3.25f)
-            );
-            characterPlacement = glm::rotate(
-                characterPlacement,
-                glm::radians(180.0f),
-                glm::vec3(0.0f, 1.0f, 0.0f)
-            );
-            characterPlacement = glm::scale(
-                characterPlacement,
-                glm::vec3(1.25f)
-            );
-            shader.setMat4("world", glm::mat4(1.0f));
-            adventurer.draw(shader, characterPlacement);
+            adventurer.draw(shader, adventurerPlacement);
 
             // ---- Legs ----
             // Drawn BEFORE the table, with depth on. Legs are already in
@@ -255,7 +310,7 @@ int main()
 
             cardAnimator.draw(
                 shader,
-                cardTexture,
+                cardTextures,
                 cards,
                 cardManager
             );

@@ -46,11 +46,12 @@ void RoomDecor::draw(const Shader& shader, float time) const
     shader.setMat4("world", glm::mat4(1.0f));
     shader.setInt("useTexture", LIT_COLOR);
 
-    drawClock(shader, time);
+    // The three decor pieces: bookshelf, Saturn and the adventurer model
+    // (drawn from main.cpp). The clock is kept in the code but not drawn,
+    // so the room holds exactly three pieces and the poster stays clear.
+    // drawClock(shader, time);
     drawBookshelf(shader);
-    // Saturn is no longer drawn: the adventurer model (see main.cpp) is the
-    // third decor piece. Uncomment to bring Saturn back.
-    // drawSaturn(shader, time);
+    drawSaturn(shader, time);
 }
 
 // ---------------------------------------------------------------------

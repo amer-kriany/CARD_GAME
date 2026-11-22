@@ -6,10 +6,10 @@
 #include "Graphics/Shader.h"
 
 // Fadi's three decor pieces, ported to our classes and fitted to the room:
-//   1. a pendulum wall clock on the back wall
-//   2. a bookshelf against the left wall
-//   3. (Saturn, a hanging cube planet, is kept in the code but not drawn:
-//       the adventurer model is the third piece instead)
+//   1. a bookshelf against the left wall
+//   2. a hanging Saturn model near the back right corner
+// (a pendulum wall clock is also written, but not drawn: the adventurer
+//  model in main.cpp is the third piece, and the poster must stay visible)
 // Every piece is built only from scaled Cubes.
 class RoomDecor {
 public:
