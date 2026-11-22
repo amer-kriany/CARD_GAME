@@ -11,7 +11,7 @@ above (cards lie flat) or from the player's seat (cards stand up).
 
 | Member | Part |
 |---|---|
-| **Amer** | Table, zones/layout, card management, card positions, animation, integration |
+| **Amer** | Table, card management, card positions, integration |
 | **Wassim** | Card art / room (floor, walls, poster) |
 | **Fadi** | Cameras and room decoration |
 
