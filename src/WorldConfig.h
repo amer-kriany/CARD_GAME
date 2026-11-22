@@ -24,6 +24,10 @@ namespace world
     // The table top is at y = 0, so the floor of the room is below it.
     constexpr float FLOOR_Y = -1.5f;
 
+    // The room is a box: walls at x and z = +-ROOM_HALF, ceiling at CEILING_Y.
+    constexpr float ROOM_HALF = 5.0f;
+    constexpr float CEILING_Y = 4.0f;
+
     // Turns the old XY table into a table lying on the XZ floor plane.
     // (x, y, z) -> (x, z, -y), then scaled.
     //   deck  zone (y = -0.48) -> z = +1.2  (near the player)

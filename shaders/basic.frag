@@ -1,6 +1,7 @@
 #version 330 core
 
 in vec2 TexCoord;
+in vec3 Normal;
 
 out vec4 FragColor;
 
@@ -89,9 +90,10 @@ vec4 leatherMaterial()
 
 void main()
 {
-    // Material 5 = plain texture for the room: no rounded-corner mask,
-    // otherwise a thin strip would be cut from every wall and the floor.
-    float mask = (useTexture == 5) ? 1.0 : shapeMask();
+    // Materials 5 and 6 are for the room and its decor: no rounded-corner
+    // mask, otherwise a thin strip would be cut from every wall, floor
+    // and box.
+    float mask = (useTexture == 5 || useTexture == 6) ? 1.0 : shapeMask();
 
     if (mask < 0.01)
         discard;
@@ -129,6 +131,14 @@ void main()
     else if (useTexture == 4)
     {
         result = leatherMaterial();
+    }
+    else if (useTexture == 6)
+    {
+        // Solid color with simple lighting, so the faces of a box differ.
+        vec3 lightDirection = normalize(vec3(0.35, 0.8, 0.5));
+        float diffuse = max(dot(normalize(Normal), lightDirection), 0.0);
+
+        result = vec4(tint.rgb * (0.45 + 0.55 * diffuse), tint.a);
     }
     else
     {

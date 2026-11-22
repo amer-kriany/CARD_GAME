@@ -12,8 +12,8 @@ namespace
 {
     // Room size. The table is about 4.5 x 3.5, so 10 x 10 leaves space
     // for the three decor pieces.
-    constexpr float HALF = 5.0f;
-    constexpr float CEILING_Y = 4.0f;
+    constexpr float HALF = world::ROOM_HALF;
+    constexpr float CEILING_Y = world::CEILING_Y;
     constexpr float FLOOR_Y = world::FLOOR_Y;
 
     // basic.frag material 5 = plain texture x tint, without the rounded-corner
