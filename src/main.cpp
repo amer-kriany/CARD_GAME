@@ -3,6 +3,9 @@
 
 #include "Cards/Cards.h"
 #include "Graphics/Texture.h"
+#include "Graphics/Model.h"
+#include "Room/Room.h"
+#include "Room/RoomDecor.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -102,6 +105,19 @@ int main()
         CardManager cardManager;
         CardAnimator cardAnimator;
 
+        // The room, decorations and character must be constructed while the
+        // OpenGL context is alive, just like the table and cards.
+        Room room;
+        RoomDecor roomDecor;
+
+        // The GLB is included in the project at models/Adventurer.glb.
+        // Freeze its Idle animation at 0.8 seconds for a stable standing pose.
+        Model adventurer(
+            ASSET_DIR "models/Adventurer.glb",
+            "CharacterArmature|Idle",
+            0.8f
+        );
+
         // Fadi's camera: keys 1 and 2 switch between the two fixed views.
         DualCamera camera;
 
@@ -185,6 +201,34 @@ int main()
             shader.use();
             shader.setMat4("projection", projection);
             shader.setMat4("view", camera.getViewMatrix());
+
+            // ---- Room ----
+            // Room geometry is already authored in world coordinates.
+            shader.setMat4("world", glm::mat4(1.0f));
+            room.draw(shader, camera.currentMode == 2);
+
+            // ---- Room Decorations ----
+            roomDecor.draw(shader, currentFrame);
+
+            // ---- Adventurer character ----
+            // Put the character in the back-right corner, standing on the
+            // room floor and facing into the room.
+            glm::mat4 characterPlacement(1.0f);
+            characterPlacement = glm::translate(
+                characterPlacement,
+                glm::vec3(3.45f, world::FLOOR_Y, -3.25f)
+            );
+            characterPlacement = glm::rotate(
+                characterPlacement,
+                glm::radians(180.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f)
+            );
+            characterPlacement = glm::scale(
+                characterPlacement,
+                glm::vec3(1.25f)
+            );
+            shader.setMat4("world", glm::mat4(1.0f));
+            adventurer.draw(shader, characterPlacement);
 
             // ---- Legs ----
             // Drawn BEFORE the table, with depth on. Legs are already in
