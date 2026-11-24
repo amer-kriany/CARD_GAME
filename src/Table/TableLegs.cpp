@@ -10,8 +10,7 @@ void TableLegs::drawBox(
     const glm::vec3& size
 ) const
 {
-    // Cube is a unit cube centered at the origin, so:
-    // scale it to the size we want, then move it to its center.
+   
     glm::mat4 model(1.0f);
     model = glm::translate(model, center);
     model = glm::scale(model, size);
@@ -28,8 +27,7 @@ void TableLegs::draw(
 {
     shader.use();
 
-    // Material: plain texture times a darker tint, so the legs read as
-    // darker wood than the lit table top.
+   
     shader.setInt("useTexture", 1);
     shader.setInt("ourTexture", 0);
     shader.setVec4("tint", glm::vec4(0.60f, 0.40f, 0.25f, 1.0f));
@@ -39,7 +37,6 @@ void TableLegs::draw(
     const float halfDepth  = world::TABLE_DEPTH  * world::TABLE_SCALE * 0.5f;
 
     // ---- Apron: a thick slab right under the table top ----
-    // Its top face sits slightly BELOW y = 0 so it never fights with the top.
     const float apronHeight = 0.20f;
     const float apronTop = -0.01f;
 
@@ -49,7 +46,7 @@ void TableLegs::draw(
         glm::vec3(halfWidth * 2.0f, apronHeight, halfDepth * 2.0f)
     );
 
-    // ---- Four legs, inset a little from the corners ----
+    // ---- Four legs,
     const float legThickness = 0.28f;
     const float inset = 0.30f;
 

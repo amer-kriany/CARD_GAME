@@ -29,7 +29,6 @@ namespace
         0.12f, 0.24f, 0.53f, 1.0f
     );
 
-    // Draws a flat rectangle using the unit Quad.
     void drawMaterial(
         const Shader& shader,
         const Quad& quad,
@@ -65,7 +64,6 @@ namespace
         quad.draw();
     }
 
-    // Draws one decorative corner ornament.
     void drawCorner(
         const Shader& shader,
         const Quad& quad,
@@ -122,7 +120,6 @@ namespace
             0
         );
 
-        // Main golden frame.
         drawMaterial(
             shader, quad,
             zone.center,
@@ -131,7 +128,6 @@ namespace
             3
         );
 
-        // Bright gold inner line.
         drawMaterial(
             shader, quad,
             zone.center,
@@ -167,7 +163,6 @@ namespace
             4
         );
 
-        // Four decorative golden studs.
         const float x = zone.size.x * 0.5f - 0.035f;
         const float y = zone.size.y * 0.5f - 0.035f;
 
@@ -251,7 +246,6 @@ void Table::draw(
         0
     );
 
-    // 4. Textured mahogany tabletop.
     glm::mat4 model(1.0f);
 
     model = glm::scale(
@@ -269,7 +263,6 @@ void Table::draw(
     wood_.bind();
     quad.draw();
 
-    // 5. Thin golden perimeter.
     const float outerX = 0.875f;
     const float outerY = 0.675f;
     const float thickness = 0.012f;
@@ -313,7 +306,6 @@ void Table::draw(
     drawZone(shader, quad, zones_[1], true);
     drawZone(shader, quad, zones_[0], false);
 
-    // 7. Four ornate corners.
     drawCorner(
         shader, quad,
         glm::vec2(-0.825f, 0.625f),

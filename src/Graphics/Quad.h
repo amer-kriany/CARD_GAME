@@ -1,8 +1,6 @@
 #pragma once
 
-// One reusable rectangle: 4 corners, each with position + UV.
-// It is a "unit" quad (from -0.5 to +0.5), so every table, zone and card
-// is this same shape, moved and resized with a model matrix.
+
 class Quad {
 public:
     Quad();

@@ -13,7 +13,6 @@ CardAnimator::CardAnimator()
 
 glm::vec2 CardAnimator::deckPosition(int cardId) const
 {
-    // Each card owns a fixed slot in the deck zone, based on its ID (1-5).
     float x = ((cardId - 1) - 2) * SLOT_SPACING;
 
     return glm::vec2(x, -0.48f);
@@ -21,7 +20,6 @@ glm::vec2 CardAnimator::deckPosition(int cardId) const
 
 glm::vec2 CardAnimator::gamePosition(int index) const
 {
-    // Spread played cards across the central game area.
     float x = (index - 2) * SLOT_SPACING;
 
     return glm::vec2(x, 0.0f);
@@ -29,7 +27,6 @@ glm::vec2 CardAnimator::gamePosition(int index) const
 
 float CardAnimator::halfDepth(int cardId) const
 {
-    // Wassim's cards: card 1 reaches z = 0.10, card 5 reaches z = 0.14.
     return 0.10f + 0.01f * static_cast<float>(cardId - 1);
 }
 
@@ -84,8 +81,7 @@ void CardAnimator::update(float deltaTime, int cameraMode)
             smoothT
         );
 
-        // The arc is now real height above the table (it used to be
-        // a 2D "up the screen" shift).
+       
         animation.height = ARC_HEIGHT * std::sin(t * 3.14159265f);
 
         animation.spin = 0.22f * std::sin(t * 3.14159265f);
@@ -120,15 +116,12 @@ void CardAnimator::drawCard(
 
     const float standRad = glm::radians(standAngle_);
 
-    // When the card stands up it rotates around its CENTER, so half of it
-    // would sink below the table. Lift it by how far it reaches downward.
     float standLift =
         halfDepth(cardId) * cardScale * std::sin(standRad);
 
     glm::mat4 model(1.0f);
 
-    // Table space (x, y) -> world (x, up, z). The table's "toward the enemy"
-    // axis y becomes -Z, so the deck (y = -0.48) is nearest the player.
+   
     model = glm::translate(
         model,
         glm::vec3(
@@ -138,16 +131,13 @@ void CardAnimator::drawCard(
         )
     );
 
-    // Wassim's cards already lie on the XZ plane, so with this camera setup
-    // they lie flat naturally. The old -90 degree hack is gone.
-    // 0 degrees = flat, 90 degrees = standing, facing the player (+Z).
+    
     model = glm::rotate(
         model,
         standRad,
         glm::vec3(1.0f, 0.0f, 0.0f)
     );
 
-    // Spin around the card's own normal (works flat or standing).
     model = glm::rotate(
         model,
         spin,
@@ -156,8 +146,7 @@ void CardAnimator::drawCard(
 
     model = glm::scale(model, glm::vec3(cardScale));
 
-    // Each card has its own image: card id 1 -> textures[0], and so on.
-    // An id outside the list falls back to the first image.
+    // Each card has its own image: card id 1 -> textures[0], 
     std::size_t index = static_cast<std::size_t>(cardId - 1);
 
     if (index >= cardTextures.size())

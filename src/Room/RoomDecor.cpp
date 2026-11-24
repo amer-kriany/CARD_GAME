@@ -8,7 +8,6 @@
 
 namespace
 {
-    // basic.frag material 6 = solid color with simple lighting.
     constexpr int LIT_COLOR = 6;
 
     const glm::vec3 WOOD(0.35f, 0.18f, 0.08f);
@@ -26,8 +25,7 @@ void RoomDecor::box(
     const glm::vec3& color
 ) const
 {
-    // Same idea as TableLegs: Cube is a unit cube at the origin,
-    // so scale it, move it, then place it inside its parent.
+   
     glm::mat4 model = parent;
     model = glm::translate(model, center);
     model = glm::scale(model, size);
@@ -42,68 +40,25 @@ void RoomDecor::draw(const Shader& shader, float time) const
 {
     shader.use();
 
-    // Decor is already in world space.
     shader.setMat4("world", glm::mat4(1.0f));
     shader.setInt("useTexture", LIT_COLOR);
 
-    // The three decor pieces: bookshelf, Saturn and the adventurer model
-    // (drawn from main.cpp). The clock is kept in the code but not drawn,
-    // so the room holds exactly three pieces and the poster stays clear.
-    // drawClock(shader, time);
+    
     drawBookshelf(shader);
     drawSaturn(shader, time);
 }
 
-// ---------------------------------------------------------------------
-// 1. Pendulum clock, on the back wall (z = -ROOM_HALF), left of the poster.
-// ---------------------------------------------------------------------
-void RoomDecor::drawClock(const Shader& shader, float time) const
-{
-    const glm::mat4 none(1.0f);
 
-    // The frame is 0.2 deep, so its center sits 0.1 in front of the wall.
-    const glm::vec3 c(-3.4f, 1.0f, -world::ROOM_HALF + 0.1f);
-
-    // Wooden frame.
-    box(shader, none, c, glm::vec3(1.2f, 1.6f, 0.2f), WOOD);
-
-    // White face.
-    box(shader, none, c + glm::vec3(0.0f, 0.35f, 0.11f),
-        glm::vec3(0.8f, 0.8f, 0.02f), CREAM);
-
-    // Minute and hour hands.
-    box(shader, none, c + glm::vec3(0.0f, 0.45f, 0.13f),
-        glm::vec3(0.04f, 0.3f, 0.01f), DARK);
-    box(shader, none, c + glm::vec3(0.12f, 0.35f, 0.13f),
-        glm::vec3(0.25f, 0.04f, 0.01f), DARK);
-
-    // Pendulum: everything inside is drawn relative to the pivot,
-    // so rotating the pivot swings the whole thing.
-    glm::mat4 pendulum(1.0f);
-    pendulum = glm::translate(pendulum, c + glm::vec3(0.0f, -0.05f, 0.12f));
-    pendulum = glm::rotate(
-        pendulum,
-        std::sin(time * 2.5f) * 0.35f,
-        glm::vec3(0.0f, 0.0f, 1.0f)
-    );
-
-    box(shader, pendulum, glm::vec3(0.0f, -0.35f, 0.0f),
-        glm::vec3(0.06f, 0.7f, 0.02f), GOLD);
-    box(shader, pendulum, glm::vec3(0.0f, -0.70f, 0.0f),
-        glm::vec3(0.20f, 0.20f, 0.03f), GOLD);
-}
 
 // ---------------------------------------------------------------------
-// 2. Bookshelf, against the left wall (x = -ROOM_HALF).
-//    Fadi's version was one solid block with the books inside it, so the
-//    books were invisible. This one is an open frame with books on shelves.
+// 1. Bookshelf, against the left wall (x = -ROOM_HALF).
 // ---------------------------------------------------------------------
 void RoomDecor::drawBookshelf(const Shader& shader) const
 {
     const glm::mat4 none(1.0f);
 
-    const float depth = 0.6f;    // how far it sticks out of the wall (x)
-    const float width = 2.2f;    // along the wall (z)
+    const float depth = 0.6f;    
+    const float width = 2.2f;    
     const float height = 3.0f;
     const float board = 0.06f;
 
@@ -154,7 +109,6 @@ void RoomDecor::drawBookshelf(const Shader& shader) const
 
         for (int i = 0; i < booksPerShelf; ++i)
         {
-            // Slightly different heights so it does not look like a wall.
             const float bookHeight = 0.55f + 0.08f * ((i * 3 + shelf) % 4);
 
             const float z = centerZ - width * 0.5f + board
@@ -170,7 +124,6 @@ void RoomDecor::drawBookshelf(const Shader& shader) const
 
 // ---------------------------------------------------------------------
 // 3. Saturn: a cube "planet" with a square ring, hanging from the ceiling
-//    near the back right corner. The ring and planet slowly spin.
 // ---------------------------------------------------------------------
 void RoomDecor::drawSaturn(const Shader& shader, float time) const
 {
@@ -187,8 +140,7 @@ void RoomDecor::drawSaturn(const Shader& shader, float time) const
         glm::vec3(0.02f, stringTop - stringBottom, 0.02f),
         glm::vec3(0.6f, 0.6f, 0.6f));
 
-    // Everything below is relative to this matrix: move to the planet,
-    // spin around the vertical axis, then tilt like Saturn.
+   
     glm::mat4 saturn(1.0f);
     saturn = glm::translate(saturn, center);
     saturn = glm::rotate(saturn, time * 0.6f, glm::vec3(0.0f, 1.0f, 0.0f));

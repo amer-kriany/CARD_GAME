@@ -6,9 +6,7 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Texture.h"
 
-// Four legs and a thick underside (apron) for the table.
-// Everything here is built directly in WORLD space (already scaled),
-// so draw it with the "world" uniform set to identity.
+
 class TableLegs {
 public:
     void draw(const Shader& shader, const Texture& woodTexture) const;

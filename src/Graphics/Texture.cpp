@@ -2,12 +2,11 @@
 #include <glad/glad.h>
 #include <iostream>
 
-// This define must appear in exactly ONE .cpp file in the whole project.
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 Texture::Texture(const std::string& path) {
-    stbi_set_flip_vertically_on_load(true);  // OpenGL's (0,0) is the bottom-left
+    stbi_set_flip_vertically_on_load(true); 
     int width, height, channels;
     unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 
@@ -24,7 +23,7 @@ Texture::Texture(const std::string& path) {
         if (channels == 4) format = GL_RGBA;
         else if (channels == 1) format = GL_RED;
 
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // rows are tightly packed
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
                      GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -32,7 +31,7 @@ Texture::Texture(const std::string& path) {
         std::cerr << "Failed to load texture: " << path << " ("
                   << stbi_failure_reason() << ")\n";
     }
-    stbi_image_free(data);  // the GPU has its own copy now
+    stbi_image_free(data);  
 }
 
 Texture::~Texture() {

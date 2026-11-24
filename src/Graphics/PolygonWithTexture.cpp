@@ -16,8 +16,7 @@ PolygonWithTexture::PolygonWithTexture(
         );
     }
 
-    // Combine position and texture coordinates.
-    // Each vertex contains 5 floats: X, Y, Z, U, V.
+    
     for (std::size_t i = 0; i < positions.size(); ++i)
     {
         vertices_.push_back(positions[i].x);
@@ -41,7 +40,6 @@ PolygonWithTexture::PolygonWithTexture(
         GL_STATIC_DRAW
     );
 
-    // Position: attribute location 0.
     glVertexAttribPointer(
         0,
         3,
@@ -53,8 +51,7 @@ PolygonWithTexture::PolygonWithTexture(
 
     glEnableVertexAttribArray(0);
 
-    // Texture coordinates: attribute location 1.
-    // This matches our basic.vert shader.
+   
     glVertexAttribPointer(
         1,
         2,
