@@ -1,0 +1,210 @@
+PROMPTS LOG - Royal Card Game (Computer Graphics project)
+=========================================================
+AI tool used: Claude (Anthropic), via Claude Code / claude.ai
+Author of this section: Amer (table, layout, card management, positions, animation, integration)
+
+Format for every entry:
+  PROMPT   - what I asked
+  RESULT   - what the AI gave me
+  MY WORK  - what I tested, changed, or had to understand myself
+
+Notes
+- Only the main requests are listed. Tiny follow-ups ("make it bigger", "move it left") are left out.
+- Wassim's and Fadi's prompts are listed in their own sections at the end.
+
+
+---------------------------------------------------------
+PART 1 - Table, cards, animation (Amer)
+---------------------------------------------------------
+
+1) Project setup and requirements
+PROMPT : I gave Claude the assignment text (HW-2026.pdf) and my part of the project:
+         table with 3 zones (player deck, central field, enemy field), 5 cards,
+         key G moves a random card from the deck to the field, the 6th press does nothing.
+         Asked it to check that we understand every requirement before coding.
+RESULT : A checklist of requirements (zones, 5 cards, G key, two cameras, textures,
+         room, decor, IDF score, GitHub, prompts.txt) and a plan in small steps.
+MY WORK: Split the work between the team and kept the checklist for the final check.
+
+2) Card logic vs. card drawing
+PROMPT : How should I organize the card code so logic and graphics are separate?
+RESULT : Three classes: CardManager (which card is in the deck / on the field),
+         CardAnimator (where the card is drawn and how it moves), Cards (card meshes).
+         They are connected only by the card id.
+MY WORK: Wrote and tested CardManager::playRandomCard (random card, 6th press does nothing).
+
+3) Cards were drawn on top of each other
+PROMPT : (screenshot) The cards in the deck are stacked in one spot, they should
+         be separate. Why?
+RESULT : Found the cause: the deck position was the same for every card.
+         Fix: each card owns a fixed slot in the deck, based on its id.
+MY WORK: Changed deckPosition(cardId) and checked spacing visually.
+
+4) Smooth movement
+PROMPT : How do I animate a card from the deck to the field so it looks natural?
+RESULT : Smoothstep easing + a small arc (height) + a little spin during the move.
+MY WORK: Tuned duration, arc height and spin; learned why smoothstep is used
+         (t*t*(3-2t) starts and ends slowly).
+
+---------------------------------------------------------
+PART 2 - Moving from 2D to a real 3D scene
+---------------------------------------------------------
+
+5) Integrating Fadi's cameras with the table
+PROMPT : Fadi made two fixed cameras. How do I combine them with my table and cards?
+         Camera 1 = top-down with flat cards, camera 2 = player view with standing cards.
+RESULT : A shared "world" matrix that lays the old 2D table on the floor plane,
+         a WorldConfig.h with shared numbers, and cards that stand up / lie down
+         depending on the camera mode (animated, not instant).
+MY WORK: Learned the matrix chain projection * view * world * model and the
+         coordinate systems (+X right, +Y up, +Z toward the player).
+
+6) Cards sinking into the table when standing
+PROMPT : (screenshot) When the cards stand up they go into the table.
+RESULT : A card rotates around its center, so half goes below the table.
+         Fix: lift the card by (half depth * scale * sin(angle)).
+MY WORK: Understood and verified in both cameras.
+
+7) Table legs
+PROMPT : We need legs for the table. Cube.h/Cube.cpp is probably for that, how do I use it?
+RESULT : TableLegs class: a wooden apron under the top + 4 legs built from the Cube class,
+         down to the floor height.
+MY WORK: Checked proportions, wood texture and height against the room floor.
+
+8) Lowering camera 2 to see the legs
+PROMPT : Can the second camera be a little lower so we can see the table legs?
+RESULT : New position and target for camera 2 in DualCamera.
+MY WORK: Told Fadi about the change (it is his file).
+
+9) Upside-down card textures
+PROMPT : (screenshot) The card textures are upside down, why?
+RESULT : The texture v coordinate was flipped for the card mesh. Fixed the UV lists in Cards.cpp.
+MY WORK: Learned how UV (0,0) vs image top-left works with stb_image's vertical flip.
+
+---------------------------------------------------------
+PART 3 - Integrating teammates' work
+---------------------------------------------------------
+
+10) Wassim's room
+PROMPT : This is Wassim's room project. Integrate it into our code. Where do the new files go?
+RESULT : Room class (floor, walls, ceiling, torn-corner poster) ported into src/Room,
+         a new shader material for plain textured surfaces, and instructions for the folder layout.
+MY WORK: Checked that the poster is visible and has the torn corner; ceiling is hidden
+         in camera 2 so it does not block the view.
+
+11) Fadi's decoration
+PROMPT : This is Fadi's decoration code (bookshelf, Saturn, clock). Integrate it.
+RESULT : RoomDecor class built from the Cube class, plus a lit-solid-color shader material.
+MY WORK: Chose the 3 final pieces (bookshelf, Saturn, 3D character); removed the clock.
+
+12) Build errors
+PROMPT : (build log) The build fails. Also VS Code says "#include errors detected".
+RESULT : File name typo (RoomDecore.cpp -> RoomDecor.cpp), missing header in src/Room,
+         and a CMake GLOB issue with a duplicate old file. The VS Code message was
+         only the IntelliSense includePath, not a real compile error.
+MY WORK: Fixed the names, removed the duplicate, learned that CMake collects all
+         src/*.cpp files automatically.
+
+---------------------------------------------------------
+PART 4 - Decoration with a 3D model
+---------------------------------------------------------
+
+13) Character model
+PROMPT : I want to add a character model (anime style) next to the table. What do you think?
+         (attached a .glb model)
+RESULT : A glTF loader (cgltf header-only library) that reads the model, applies one
+         animation pose once at load time, and draws it like any other mesh.
+MY WORK: Checked the license of the model (Quaternius, CC0) and added credit in README.
+         Learned what skinning is and why we freeze one pose.
+
+14) Character placement
+PROMPT : (screenshots) The character is not in front of me, he looks sad, the raised hand
+         looks wrong, he is too small, and the poster must stay visible.
+RESULT : Changed the animation pose, scale and position; moved the poster so both are visible.
+MY WORK: Tested from both cameras.
+
+---------------------------------------------------------
+PART 5 - Card artwork
+---------------------------------------------------------
+
+15) One texture per card
+PROMPT : I have 5 card images but only one is loaded. Make every card use its own texture.
+RESULT : loadCardTextures() reads all images from textures/cards/ in sorted order
+         (card 1 = first file). CardAnimator picks the texture by card id.
+MY WORK: Tested that 5 different cards show up.
+
+16) Card faces: photo + text
+PROMPT : Can we make each card a photo with some text under it? I attached the 5 pictures.
+         Generate the text and make all photos the same size.
+RESULT : A Python (Pillow) script, make_cards.py: removes the white background, fits every
+         character into the same box, adds a colored frame, a name bar, a title and a
+         short line of text. Keeps a safe margin because the shader rounds the corners.
+MY WORK: Ran the script and copied the 5 images into textures/cards/.
+         Need to confirm with the instructor that the characters are allowed
+         (assignment says: fictional characters based on a team member).
+
+---------------------------------------------------------
+PART 6 - Wassim ---------------------------------------------------------
+====================================================================
+
+[Prompt 1 - بناء الغرفة والطاولة بأقسامها الثلاثة]
+بناءً على بنية وكلاسات OpenGL المقدمة في المحاضرات (C++ مع مكتبات GLFW و GLM وكلاس Polygon)، اكتب كوداً لبناء بيئة الغرفة الواسعة والطاولة المركزية المقسمة إلى 3 أقسام واضحة (مخزون/يد اللاعب، منطقة اللعب الوسطى، ومنطقة الخصم/اللوحة):
+- تحديد أبعاد ومقاييس الغرفة والطاولة بشكل متناسق في ملف إعدادات مشترك (مثل WorldConfig.h) بحيث يسهل على بقية مكونات المشهد الاعتماد على نفس المقاييس.
+- استخدام كلاس Polygon (المعتمد على GL_TRIANGLE_FAN) لرسم أرضية وجدران الغرفة وأسطح الطاولة وأقسامها الثلاثة بألوان متباينة ومريحة للنظر.
+
+--------------------------------------------------------------------
+
+[Prompt 2 - تصميم كلاس Card لإدارة بيانات البطاقة]
+باستخدام لغة ++C الحديثة ضمن بنية مشروع OpenGL، اكتب كلاس باسم Card داخل ملف ترويسة مستقل (Card.h) مع حارس التضمين #pragma once لتمثيل بطاقة واحدة في اللعبة:
+- تخزين مُعرّف رقمي فريد لكل بطاقة (id) ومنع التحويل الضمني غير المقصود عند إنشاء الكائن عبر جعل المنشئ explicit.
+- توفير دالة قراءة ثابتة (const) لإرجاع مُعرّف البطاقة بأمان.
+
+--------------------------------------------------------------------
+
+[Prompt 3 - إدارة مجموعة البطاقات (Deck و Played Cards)]
+بناءً على كلاس Card، اكتب كلاساً لإدارة حالة البطاقات في اللعبة (مثل CardManager) يتولى:
+- تهيئة مجموعة البطاقات الأولية في يد/مخزون اللاعب (Deck) وتنظيم ترتيبها.
+- نقل بطاقة محددة من المخزون إلى منطقة البطاقات الملعوبة (Played Cards) عند اختيارها أو لعبها، مع توفير دوال واضحة لقراءة البطاقات في كل من المخزون ومنطقة اللعب.
+
+--------------------------------------------------------------------
+
+[Prompt 4 - رسم البطاقات الخاماتية (Textured Cards) على الطاولة]
+باستخدام كلاس PolygonWithTexture من المحاضرة الرابعة ومكتبة GLM، اكتب كوداً لرسم البطاقات الخمس المزودة بصور/خامات (Textures) على الطاولة في مواضعها المخصصة:
+- ربط كل بطاقة برقمها (id) بالخامة المناسبة لها مع معالجة آمنة في حال عدم توفر خامة كافية.
+- تمرير مصفوفة التحويل الهندسي (model) إلى الشيدر (مثل L4.vs و L4.fs) لتظهر البطاقات في مستوى مناسب فوق سطح الطاولة دون تداخل معها.
+
+--------------------------------------------------------------------
+
+[Prompt 5 - الدمج والتكامل العام في Main.cpp]
+اكتب برنامج Main.cpp يجمع بين مكونات الغرفة والطاولة للشخص الأول ومكونات إدارة ورسم البطاقات للشخص الثاني (إلى جانب الكاميرات والحركة والديكورات في المشهد الكامل)، مع إعداد نافذة GLFW، تفعيل اختبار العمق (Depth Testing)، ربط الشيدر، وضبط حلقة الرسم الرئيسية (Render Loop) بشكل سليم.
+---------------------------------------------------------
+PART 7 - Fadi ---------------------------------------------------------
+====================================================================
+ملف التوجيهات (Prompts) - وظيفة مادة البيانيات (لعبة بطاقات OpenGL)
+====================================================================
+
+[Prompt 1 - نظام الكاميرات المزدوجة والتبديل بالأزرار]
+بناءً على بنية وكلاسات OpenGL المقدمة في المحاضرات (C++ مع مكتبات GLFW و GLM)، اكتب كلاس باسم DualCamera لإدارة حالتين ثابتتين للكاميرا والتبديل بينهما عبر أزرار لوحة المفاتيح:
+- عند الضغط على زر (1): تنتقل الكاميرا إلى وضعية علوية تماماً فوق الطاولة (Top-Down View) تنظر بشكل عمودي نحو مركز الطاولة.
+- عند الضغط على زر (2): تنتقل الكاميرا إلى منظور اللاعب الجالس أمام الطاولة (Player View) بحيث يرى ساحة اللعب والبطاقات بوضوح.
+- يجب أن يوفر الكلاس دالة getViewMatrix() لإرجاع مصفوفة الرؤية (glm::lookAt) المناسبة للحالة النشطة.
+
+--------------------------------------------------------------------
+
+[Prompt 2 - تحريك البطاقات (Animation) بين الوضع المسطح والواقف]
+باستخدام كلاس PolygonWithTexture من المحاضرة الرابعة ومصفوفات التحويل الهندسي في GLM (translate و rotate)، اكتب كلاس باسم CardAnimator للتحكم في حركة Animation سلسة للبطاقات بالاعتماد على deltaTime:
+- عندما تكون الكاميرا في الحالة (1) (فوق الطاولة): تتحرك البطاقة تدريجياً لتصبح مسطحة أفقياً على سطح الطاولة (زاوية دوران 0 درجة).
+- عندما تكون الكاميرا في الحالة (2) (منظور اللاعب): تدور البطاقة تدريجياً حول محور X لتقف عمودياً بزاوية 90 درجة باتجاه اللاعب، مع رفعها قليلاً عن سطح الطاولة لمنع تداخلها هندسياً مع سطح الطاولة.
+
+--------------------------------------------------------------------
+
+[Prompt 3 - تصميم وبناء 3 قطع ديكور مختلفة داخل الغرفة]
+بالاعتماد على كلاس Polygon المبني على نمط الرسم GL_TRIANGLE_FAN من المحاضرات السابقة، صمم كلاس باسم RoomDecor لبناء 3 قطع ديكور ثلاثية الأبعاد مختلفة ومبتكرة لتزيين الغرفة الواسعة المحيطة بالطاولة (مع تجنب القطع التقليدية الشائعة):
+1. ساعة حائط بندولية (Wall Pendulum Clock) معلقة على الجدار الخلفي، تتكون من إطار خشبي، قرص أبيض، عقارب، وبندول ذهبي متحرك يتأرجح باستمرار مع الزمن باستخدام دالة sin(glfwGetTime()).
+2. خزانة كتب خشبية (Bookshelf) موضوعة بجانب الجدار الأيسر، وتحتوي على مجموعة كتب بألوان وأحجام مختلفة.
+3. مجسم زينة ثلاثي الأبعاد لكوكب زحل بحلقاته المائلة (Saturn Decor) معلق في الزاوية اليمنى للغرفة.
+
+--------------------------------------------------------------------
+
+[Prompt 4 - الدمج والتجربة في البرنامج الرئيسي Main.cpp]
+اكتب برنامج Main.cpp متكامل يجمع كلاسات المحاضرات (Polygon و PolygonWithTexture) مع كلاسات الشخص الثالث (DualCamera و CardAnimator و RoomDecor) في مشهد واحد يعمل مع الشيدر (L4.vs و L4.fs)، بحيث يعرض الغرفة والطاولة بأقسامها الثلاثة والبطاقات الخمس، ويتيح اختبار التبديل بين الكاميرتين (1 و 2) ومشاهدة حركة البطاقات والديكورات.
