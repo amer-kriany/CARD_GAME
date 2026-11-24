@@ -96,14 +96,12 @@ Cube::Cube()
         GL_STATIC_DRAW
     );
 
-    // Position: 3 floats.
     glVertexAttribPointer(
         0, 3, GL_FLOAT, GL_FALSE,
         8 * sizeof(float), (void*)0
     );
     glEnableVertexAttribArray(0);
 
-    // Texture coordinates: 2 floats.
     glVertexAttribPointer(
         1, 2, GL_FLOAT, GL_FALSE,
         8 * sizeof(float),
@@ -111,7 +109,6 @@ Cube::Cube()
     );
     glEnableVertexAttribArray(1);
 
-    // Normal: 3 floats.
     glVertexAttribPointer(
         2, 3, GL_FLOAT, GL_FALSE,
         8 * sizeof(float),

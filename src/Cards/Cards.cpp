@@ -2,10 +2,7 @@
 
 #include <stdexcept>
 
-// Texture coordinates: v is flipped (1 at the first corner, 0 at the last).
-// The first corners have z = -0.10, which is the FAR edge of the card
-// (up on screen in camera 1, the top when standing in camera 2), and the
-// image's top row is v = 1, so the image top must sit on that edge.
+
 Cards::Cards()
     : card1(
         {

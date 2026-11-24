@@ -30,11 +30,7 @@
 #define ASSET_DIR "./"
 #endif
 
-// Loads the card images from a folder: every .png / .jpg / .jpeg inside it,
-// sorted by file name. The first file is card 1, the second is card 2, and
-// so on. So just drop your five images into textures/cards/ (for example
-// 1.png, 2.png, ... or card1.png, card2.png, ...). The order is printed to
-// the terminal so you can check it.
+
 static std::vector<std::unique_ptr<Texture>> loadCardTextures(
     const std::string& folder
 )
@@ -75,7 +71,6 @@ static std::vector<std::unique_ptr<Texture>> loadCardTextures(
 
     for (int card = 1; card <= 5; ++card)
     {
-        // If there are fewer than 5 images, start again from the first.
         const std::string& path = files[(card - 1) % files.size()];
 
         std::cout << "Card " << card << " -> " << path << "\n";
@@ -132,7 +127,6 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // We are in real 3D now, so we need a depth buffer.
     glEnable(GL_DEPTH_TEST);
 
     {
@@ -147,26 +141,19 @@ int main()
             ASSET_DIR "textures/wood.png"
         );
 
-        // One image per card, read from textures/cards/ (see loadCardTextures).
         std::vector<std::unique_ptr<Texture>> cardTextures =
             loadCardTextures(ASSET_DIR "textures/cards/");
 
-        // Wood for the legs. Kept separate from the card textures because the
-        // cards will get their own artwork later.
         Texture woodTexture(
             ASSET_DIR "textures/wood.png"
         );
 
         TableLegs tableLegs;
 
-        // Waseem's room: floor, walls, ceiling and the torn poster.
         Room room;
 
-        // Fadi's three decor pieces: pendulum clock, bookshelf, Saturn.
         RoomDecor roomDecor;
 
-        // The third decor piece: a 3D character (Quaternius "Adventurer",
-        // CC0). He stands in the middle, behind the table, facing the player.
         Model adventurer(
             ASSET_DIR "models/Adventurer.glb",
             "CharacterArmature|Idle_Neutral",
@@ -180,7 +167,7 @@ int main()
         );
         adventurerPlacement = glm::rotate(
             adventurerPlacement,
-            glm::radians(0.0f),     // 0 = facing the player (camera 2)
+            glm::radians(0.0f),     
             glm::vec3(0.0f, 1.0f, 0.0f)
         );
         adventurerPlacement = glm::scale(
@@ -193,7 +180,6 @@ int main()
         CardManager cardManager;
         CardAnimator cardAnimator;
 
-        // Fadi's camera: keys 1 and 2 switch between the two fixed views.
         DualCamera camera;
 
         bool gWasPressed = false;
@@ -207,7 +193,6 @@ int main()
             float deltaTime = currentFrame - lastFrame;
             lastFrame = currentFrame;
 
-            // Avoid huge animation jumps if the window freezes briefly.
             deltaTime = std::min(deltaTime, 0.05f);
 
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -253,7 +238,6 @@ int main()
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // Perspective projection that follows the window shape.
             int framebufferWidth = 0;
             int framebufferHeight = 0;
             glfwGetFramebufferSize(
@@ -267,7 +251,7 @@ int main()
                 static_cast<float>(std::max(framebufferHeight, 1));
 
             glm::mat4 projection = glm::perspective(
-                glm::radians(55.0f),  // wider than before so the legs fit
+                glm::radians(55.0f),  
                 aspect,
                 0.1f,
                 100.0f
@@ -278,25 +262,19 @@ int main()
             shader.setMat4("view", camera.getViewMatrix());
 
             // ---- Room ----
-            // Drawn first. Already in world space, so "world" is identity.
-            // The ceiling is skipped in camera 1, which sits above it.
+           
             shader.setMat4("world", glm::mat4(1.0f));
             room.draw(shader, camera.currentMode == 2);
             roomDecor.draw(shader, currentFrame);
             adventurer.draw(shader, adventurerPlacement);
 
             // ---- Legs ----
-            // Drawn BEFORE the table, with depth on. Legs are already in
-            // world space, so "world" is identity.
+            
             shader.setMat4("world", glm::mat4(1.0f));
             tableLegs.draw(shader, woodTexture);
 
             // ---- Table ----
-            // Table.cpp still draws in its old XY layout and sets "model"
-            // itself. The "world" matrix lays that whole thing flat on the
-            // XZ floor plane (and scales it up) without touching Table.cpp.
-            // The table is painted in layers, so it skips the depth test
-            // and is simply drawn first.
+           
             shader.setMat4("world", world::tableToWorld());
 
             glDisable(GL_DEPTH_TEST);
@@ -304,8 +282,7 @@ int main()
             glEnable(GL_DEPTH_TEST);
 
             // ---- Cards ----
-            // Cards build their full world transform themselves,
-            // so "world" goes back to identity.
+           
             shader.setMat4("world", glm::mat4(1.0f));
 
             cardAnimator.draw(

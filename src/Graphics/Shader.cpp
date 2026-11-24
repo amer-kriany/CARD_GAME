@@ -50,7 +50,6 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
         std::cerr << "Shader link error:\n" << log << "\n";
     }
 
-    // Linked into the program, so the separate shader objects are not needed.
     glDeleteShader(vs);
     glDeleteShader(fs);
 }

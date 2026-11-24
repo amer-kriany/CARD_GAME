@@ -14,7 +14,6 @@
 
 namespace
 {
-    // The pose of one node: translation, rotation, scale.
     struct NodePose {
         glm::vec3 translation{0.0f};
         glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
@@ -41,8 +40,6 @@ namespace
         return static_cast<size_t>(node - data->nodes);
     }
 
-    // Value of an animation track at a given time (linear interpolation).
-    // "components" is 3 for translation/scale, 4 for rotation.
     glm::vec4 sampleTrack(
         const cgltf_animation_sampler& sampler,
         int components,
@@ -68,7 +65,6 @@ namespace
 
         const size_t count = times->count;
 
-        // Before the first key or after the last key: hold that value.
         if (time <= readTime(0))
         {
             return readValue(0);
@@ -79,7 +75,6 @@ namespace
             return readValue(count - 1);
         }
 
-        // Find the two keys around "time" and blend between them.
         size_t next = 1;
         while (next < count && readTime(next) < time)
         {
@@ -96,7 +91,6 @@ namespace
 
         if (components == 4)
         {
-            // Rotations are quaternions: blend them with slerp.
             const glm::quat qa(a.w, a.x, a.y, a.z);
             const glm::quat qb(b.w, b.x, b.y, b.z);
             const glm::quat q = glm::slerp(qa, qb, blend);
@@ -220,7 +214,6 @@ Model::Model(
     std::vector<glm::mat4> world(data->nodes_count, glm::mat4(1.0f));
     std::vector<bool> done(data->nodes_count, false);
 
-    // Walks up to the parent first, so the parent's matrix is ready.
     auto computeWorld = [&](auto&& self, const cgltf_node* node) -> glm::mat4
     {
         const size_t index = nodeIndex(data, node);
@@ -245,7 +238,7 @@ Model::Model(
 
     // ---- 4. Pose every mesh and collect triangles ----
     struct RawPart {
-        std::vector<float> vertices;   // x y z u v nx ny nz
+        std::vector<float> vertices;  
         std::vector<unsigned int> indices;
         glm::vec3 color{1.0f};
     };
@@ -266,8 +259,7 @@ Model::Model(
 
         const glm::mat4 nodeWorld = computeWorld(computeWorld, &node);
 
-        // Skinning matrix of every bone: where the bone is now,
-        // times where it was when the mesh was attached to it.
+      
         std::vector<glm::mat4> boneMatrices;
 
         if (node.skin)
@@ -336,8 +328,6 @@ Model::Model(
 
             RawPart part;
 
-            // Material color. glTF stores it in linear space, our shader
-            // writes it straight to the screen, so convert to sRGB-ish.
             if (primitive.material
                 && primitive.material->has_pbr_metallic_roughness)
             {
@@ -373,7 +363,6 @@ Model::Model(
                     cgltf_accessor_read_uint(joints, v, j, 4);
                     cgltf_accessor_read_float(weights, v, w, 4);
 
-                    // Blend the 4 bones that influence this vertex.
                     glm::mat4 blended(0.0f);
 
                     for (int k = 0; k < 4; ++k)
@@ -426,8 +415,7 @@ Model::Model(
         return;
     }
 
-    // ---- 5. Move the feet to the origin, then upload to the GPU ----
-    // x and z: center of the model. y: the lowest point.
+   
     const glm::vec3 shift(
         -(minCorner.x + maxCorner.x) * 0.5f,
         -minCorner.y,
@@ -471,7 +459,6 @@ Model::Model(
             GL_STATIC_DRAW
         );
 
-        // Same layout as Cube: position, UV, normal.
         glVertexAttribPointer(
             0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
@@ -506,7 +493,6 @@ void Model::draw(const Shader& shader, const glm::mat4& placement) const
 {
     shader.use();
 
-    // Material 6 = solid color with simple lighting (see basic.frag).
     shader.setInt("useTexture", 6);
     shader.setMat4("model", placement);
 

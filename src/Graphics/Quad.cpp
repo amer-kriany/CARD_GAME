@@ -38,7 +38,6 @@ Quad::Quad()
     );
     glEnableVertexAttribArray(1);
 
-    // A quad faces the local +Z direction.
     glDisableVertexAttribArray(2);
     glVertexAttrib3f(2, 0.0f, 0.0f, 1.0f);
 

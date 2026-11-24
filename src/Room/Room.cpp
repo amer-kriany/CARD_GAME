@@ -10,17 +10,14 @@
 
 namespace
 {
-    // Room size. The table is about 4.5 x 3.5, so 10 x 10 leaves space
-    // for the three decor pieces.
+    
     constexpr float HALF = world::ROOM_HALF;
     constexpr float CEILING_Y = world::CEILING_Y;
     constexpr float FLOOR_Y = world::FLOOR_Y;
 
-    // basic.frag material 5 = plain texture x tint, without the rounded-corner
-    // mask (that mask would cut gaps between walls and floor).
+    
     constexpr int PLAIN_TEXTURE = 5;
 
-    // How many times the texture repeats over a surface (about 2.5 units each).
     constexpr float TILE_FLOOR = 4.0f;
     constexpr float TILE_WALL_U = 4.0f;
     constexpr float TILE_WALL_V = 2.2f;
@@ -35,9 +32,7 @@ namespace
         };
     }
 
-    // ---- Waseem's torn poster ----
-    // Each row: x, y, z, u, v. The corner is eaten away along a jagged edge
-    // at the bottom right. Original numbers are unchanged.
+ 
     constexpr float POSTER_POINTS[23][5] = {
         {-1.50f, 0.50f, 4.980f, 0.000f, 0.000f},
         { 0.30f, 0.50f, 4.980f, 0.600f, 0.000f},
@@ -64,11 +59,7 @@ namespace
         {-1.50f, 2.50f, 4.980f, 0.000f, 1.000f}
     };
 
-    // The poster image is portrait (640 x 1136) but Waseem's rectangle is
-    // 3 wide x 2 tall, which stretches it sideways. Squeeze x so a 2-tall
-    // poster is 640/1136 * 2 wide.
-    // Where the poster hangs along the back wall (0 = middle). It is moved
-    // to the left so the character, who stands in the middle, never hides it.
+    
     constexpr float POSTER_X = -2.6f;
 
     constexpr float POSTER_X_SCALE = (640.0f / 1136.0f * 2.0f) / 3.0f;
@@ -77,18 +68,13 @@ namespace
     {
         std::vector<glm::vec3> positions;
 
-        // His floor was at y = -1, ours is at FLOOR_Y: keep the same
-        // height above the floor.
-        // POSTER_DROP lowers it a bit more so the top is never cut off
-        // by the top of the screen in camera 2.
+       
         const float POSTER_DROP = 0.25f;
         const float lift = FLOOR_Y - (-1.0f) - POSTER_DROP;
 
         for (const auto& p : POSTER_POINTS)
         {
-            // z is mirrored (4.98 -> -4.98): his poster was on the wall
-            // behind camera 2. This puts it on the BACK wall, which
-            // camera 2 looks at.
+            
             positions.emplace_back(
                 p[0] * POSTER_X_SCALE + POSTER_X, p[1] + lift, -p[2]);
         }
@@ -166,6 +152,5 @@ void Room::draw(const Shader& shader, bool drawCeiling) const
         ceiling_.draw(shader, wallTexture_, identity, PLAIN_TEXTURE);
     }
 
-    // Poster last: it floats 0.02 in front of the back wall.
     poster_.draw(shader, posterTexture_, identity, PLAIN_TEXTURE);
 }

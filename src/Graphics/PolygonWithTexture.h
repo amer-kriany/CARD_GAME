@@ -26,7 +26,7 @@ public:
         const Shader& shader,
         const Texture& texture,
         const glm::mat4& model,
-        int material = 1   // basic.frag "useTexture" mode (1 = texture x tint)
+        int material = 1   
     ) const;
 
 private:

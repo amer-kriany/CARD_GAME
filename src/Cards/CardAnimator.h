@@ -30,7 +30,6 @@ private:
     struct Animation {
         int cardId;
 
-        // Positions are in TABLE space: x right, y toward the enemy.
         glm::vec2 startPosition;
         glm::vec2 targetPosition;
         glm::vec2 currentPosition;
@@ -38,8 +37,8 @@ private:
         float elapsedTime;
         float duration;
 
-        float spin;    // radians, around the card's own normal
-        float height;  // world units above the table (the arc of the throw)
+        float spin;    
+        float height;  
     };
 
     std::vector<Animation> animations_;
@@ -57,8 +56,7 @@ private:
     glm::vec2 deckPosition(int cardId) const;
     glm::vec2 gamePosition(int index) const;
 
-    // How far the card's geometry reaches along its local Z (in model units).
-    // Needed so a standing card rests on the table instead of sinking into it.
+   
     float halfDepth(int cardId) const;
 
     void drawCard(

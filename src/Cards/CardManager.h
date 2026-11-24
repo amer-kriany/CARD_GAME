@@ -10,8 +10,7 @@ class CardManager {
 public:
     CardManager();
 
-    // Moves one random card from the deck to the game field.
-    // Returns true if a card was moved.
+   
     bool playRandomCard();
 
     // Read-only access to the card collections.
